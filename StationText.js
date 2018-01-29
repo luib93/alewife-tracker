@@ -2,14 +2,15 @@ import React from 'react';
 import { StyleSheet, Text, View, Button, Alert, TouchableOpacity } from 'react-native';
 
 export default class StationText extends React.Component {
-    handleClick = (e) => {
-        Alert.alert('You are at ' + this.props.stationName);
-    }
+  handleClick = (e) => {
+    Alert.alert('You are at ' + this.props.stationName);
+  }
+  
   render() {
     return (
       <View style={styles.container}>
         <TouchableOpacity style={styles.button} onPress={this.handleClick}>
-            <Text style={styles.text}>{this.props.stationName}</Text>
+          <Text style={styles.text}>{this.props.stationName}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -33,7 +34,7 @@ const styles = StyleSheet.create({
   button: {
   },
   text: {
-      fontSize: 30,
-      color: 'white',
+    fontSize: 30,
+    color: 'white',
   }
 });
