@@ -54,13 +54,13 @@ export default class App extends React.Component {
     });
 
     if(timeLeft && !isNaN(timeLeft)) {
-      this.startTimer(key + TIMER);
+      this.startTimer(key);
     }
   }
 
   componentWillUnmount() {
-    this.stopTimer(ASHMONT + TIMER);
-    this.stopTimer(BRAINTREE + TIMER);
+    this.stopTimer(ASHMONT);
+    this.stopTimer(BRAINTREE);
   }
 
   updateAshmontArrivalTime = (data) => {
