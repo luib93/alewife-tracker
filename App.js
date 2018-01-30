@@ -6,6 +6,10 @@ import StationText from './StationText';
 import RefreshButton from './RefreshButton';
 import * as Request from './request';
 
+const ASHMONT = 'ashmontTime';
+const BRAINTREE = 'braintreeTime';
+const TIMER = 'Timer';
+
 export default class App extends React.Component {
   constructor(props) {
     super(props);
@@ -20,27 +24,51 @@ export default class App extends React.Component {
     this.refreshAPI();
   }
 
-  updateTime = (key, data) => {
-    const timeLeft = Math.round(Math.abs(new Date() - new Date(data[0])) / 60000);
-    const timeUnit = timeLeft === 1 ? 'minute' : 'minutes';
+  stopTimer = (key) => {
+    clearInterval(this[key]);
+  }
 
-    if (isNaN(timeLeft)) {
-      this.setState({
-        [key]: 'End of service',
+  startTimer = (key) => {
+    this.stopTimer(key);
+
+    // decrement every minute (60,000 MS)
+    this[key] = setInterval(()=> {
+      this.setState((prev)=> {
+        return {
+          [key]: Math.max(prev[key] - 60000, 0),
+        };
       });
-    } else {
-      this.setState({
-        [key]: `${timeLeft} ${timeUnit}`,
-      });
+
+      // stop when we hit 0 minutes
+      if (Math.round(this.state[key] / 60000) <= 0) {
+        this.stopTimer(key);
+      }
+    }, 60000);
+  }
+
+  updateTime = (key, data) => {
+    const timeLeft = Math.round(Math.abs(new Date() - new Date(data[0])));
+
+    this.setState({
+      [key]: timeLeft,
+    });
+
+    if(timeLeft && !isNaN(timeLeft)) {
+      this.startTimer(key + TIMER);
     }
   }
 
+  componentWillUnmount() {
+    this.stopTimer(ASHMONT + TIMER);
+    this.stopTimer(BRAINTREE + TIMER);
+  }
+
   updateAshmontArrivalTime = (data) => {
-    this.updateTime('ashmontTime', data);
+    this.updateTime(ASHMONT, data);
   }
 
   updateBraintreeArrivalTime = (data) => {
-    this.updateTime('braintreeTime', data);
+    this.updateTime(BRAINTREE, data);
   }
 
   handleAPIError = (key, err) => {
@@ -50,11 +78,11 @@ export default class App extends React.Component {
   }
 
   handleAshmontError = (err) => {
-    this.handleAPIError('ashmontTime', err);
+    this.handleAPIError(ASHMONT, err);
   }
 
   handleBraintreeError = (err) => {
-    this.handleAPIError('braintreeTime', err);
+    this.handleAPIError(BRAINTREE, err);
   }
 
   refreshAPI = () => {
