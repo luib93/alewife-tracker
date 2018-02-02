@@ -3,16 +3,69 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, View, Button } from 'react-native';
 
 export default class TrainSchedule extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            timeLeft: null,
+        };
+    }
+
+    componentWillReceiveProps(nextProps) {
+        this.updateTimeLeft(nextProps.time);
+        this.startTimer();
+    }
+
+    stopTimer = () => {
+        clearInterval(this.updateTimer);
+    }
+    
+    startTimer = () => {
+        this.stopTimer();
+        this.updateTimer = setInterval(this.updateTimeLeftThroughProps, 60000);
+    }
+
+    updateTimeLeft = (time) => {
+        if (time) {
+            console.log('updated ' + time);
+            const calculatedTime = Math.max(Math.round(Math.abs(new Date() - time) / 60000), 0);
+
+            // end of service will not have a date
+            if (isNaN(calculatedTime)) {
+                this.stopTimer();
+                this.setState({
+                    timeLeft: NaN,
+                });
+            } else if(calculatedTime <= 0) {
+                this.stopTimer();
+                this.setState({
+                    timeLeft: 0,
+                });
+            } else {
+                this.setState({
+                    timeLeft: calculatedTime,
+                });
+            } 
+        }
+    }
+
+    updateTimeLeftThroughProps = () => {
+        this.updateTimeLeft(this.props.time);
+    }
+
+    componentWillUnmount() {
+        this.stopTimer();
+    }
+
     translateTime = () => {
-        if(!this.props.time) {
+        if(this.state.timeLeft === null) {
             return 'N/A';
-        } else if(isNaN(this.props.time)) {
+        } else if(isNaN(this.state.timeLeft)) {
             return 'End of service';
         }
 
-        const mins = Math.round(this.props.time / 60000);
-        const unit = mins === 1 ? 'minute' : 'minutes';
-        return `${mins} ${unit}`;
+        const unit = this.state.timeLeft === 1 ? 'minute' : 'minutes';
+        return `${this.state.timeLeft} ${unit}`;
     }
 
     render() {
@@ -29,7 +82,7 @@ export default class TrainSchedule extends React.Component {
 
 TrainSchedule.propTypes = {
     trainName: PropTypes.string.isRequired,
-    time: PropTypes.number,
+    time: PropTypes.instanceOf(Date),
 };
 
 const styles = StyleSheet.create({

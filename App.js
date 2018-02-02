@@ -8,15 +8,14 @@ import * as Request from './request';
 
 const ASHMONT = 'ashmontTime';
 const BRAINTREE = 'braintreeTime';
-const TIMER = 'Timer';
 
 export default class App extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      ashmontTime: null,
-      braintreeTime: null,
+      [ASHMONT]: null,
+      [BRAINTREE]: null,
     };
   }
 
@@ -24,74 +23,21 @@ export default class App extends React.Component {
     this.refreshAPI();
   }
 
-  stopTimer = (key) => {
-    clearInterval(this[key]);
-  }
-
-  startTimer = (key) => {
-    this.stopTimer(key);
-
-    // decrement every minute (60,000 MS)
-    this[key] = setInterval(()=> {
-      this.setState((prev)=> {
-        return {
-          [key]: Math.max(prev[key] - 60000, 0),
-        };
-      });
-
-      // stop when we hit 0 minutes
-      if (Math.round(this.state[key] / 60000) <= 0) {
-        this.stopTimer(key);
-      }
-    }, 60000);
-  }
-
   updateTime = (key, data) => {
-    const timeLeft = Math.round(Math.abs(new Date() - new Date(data[0])));
-
     this.setState({
-      [key]: timeLeft,
+      [key]: new Date(data),
     });
-
-    if(timeLeft && !isNaN(timeLeft)) {
-      this.startTimer(key);
-    }
-  }
-
-  componentWillUnmount() {
-    this.stopTimer(ASHMONT);
-    this.stopTimer(BRAINTREE);
-  }
-
-  updateAshmontArrivalTime = (data) => {
-    this.updateTime(ASHMONT, data);
-  }
-
-  updateBraintreeArrivalTime = (data) => {
-    this.updateTime(BRAINTREE, data);
   }
 
   handleAPIError = (key, err) => {
-    this.setState({
-      [key]: 'N/A',
-    });
-  }
-
-  handleAshmontError = (err) => {
-    this.handleAPIError(ASHMONT, err);
-  }
-
-  handleBraintreeError = (err) => {
-    this.handleAPIError(BRAINTREE, err);
+    console.log(`Update ${key} error`);
   }
 
   refreshAPI = () => {
-    Request.getNextAshmontTime().then(this.updateAshmontArrivalTime).catch(this.handleAshmontError);
-    Request.getNextBraintreeTime().then(this.updateBraintreeArrivalTime).catch(this.handleBraintreeError);
-  }
-
-  handlePress = () => {
-    this.refreshAPI();
+    return Promise.all([Request.getNextAshmontTime(), Request.getNextBraintreeTime()]).then(([ashmontData, braintreeData]) => {
+      this.updateTime(ASHMONT, ashmontData[0]);
+      this.updateTime(BRAINTREE, braintreeData[0]);
+    }).catch(this.handleAPIError);
   }
 
   render() {
@@ -100,9 +46,9 @@ export default class App extends React.Component {
         <Header />
         <View style={styles.body}>
           <StationText stationName="JFK / UMASS" />
-          <TrainSchedule trainName="From Ashmont" time={this.state.ashmontTime} />
-          <TrainSchedule trainName="From Braintree" time={this.state.braintreeTime} />
-          <RefreshButton onPress={this.handlePress} />
+          <TrainSchedule trainName="From Ashmont" time={this.state[ASHMONT]} />
+          <TrainSchedule trainName="From Braintree" time={this.state[BRAINTREE]} />
+          <RefreshButton onPress={this.refreshAPI} />
         </View>
       </View>
     );
