@@ -1,9 +1,10 @@
 import React from 'react';
-import { StyleSheet, View, ScrollView, RefreshControl, Alert } from 'react-native';
+import { StyleSheet, View, ScrollView, RefreshControl, Alert, AppState } from 'react-native';
 import Header from './Header';
 import TrainSchedule from './TrainSchedule';
 import StationText from './StationText';
 import * as Request from './request';
+import StationSelector from './StationSelector';
 
 const ASHMONT = 'ashmontTime';
 const BRAINTREE = 'braintreeTime';
@@ -29,12 +30,26 @@ export default class App extends React.Component {
       [ASHMONT]: null,
       [BRAINTREE]: null,
       refreshing: false,
+      showSelector: false,
+      stationName: 'JFK / UMASS',
     };
   }
 
   componentDidMount() {
     this.refreshAPI();
+
+    AppState.addEventListener('change', this.handleAppStateChange);
   }
+
+  componentWillUnmount() {
+    AppState.removeEventListener('change', this.handleAppStateChange);
+  }
+
+  handleAppStateChange = (nextAppState) => {
+    if (nextAppState === 'active') {
+      this.refreshAPIControl();
+    }
+  };
 
   updateTime = (key, data) => {
     this.setState({
@@ -63,6 +78,19 @@ export default class App extends React.Component {
     Alert.alert('Updated');
   })
 
+  handleStationTextPress = () => {
+    this.setState({
+      showSelector: true,
+    });
+  }
+
+  handleSelectorChange = (itemValue) => {
+    this.setState({
+      stationName: itemValue,
+      showSelector: false,
+    });
+  }
+
   render() {
     return (
       <View style={styles.container}>
@@ -79,10 +107,11 @@ export default class App extends React.Component {
             />
           }
         >
-          <StationText stationName="JFK / UMASS" />
+          <StationText stationName={this.state.stationName} onPress={this.handleStationTextPress} />
           <TrainSchedule trainName="From Ashmont" time={this.state[ASHMONT]} />
           <TrainSchedule trainName="From Braintree" time={this.state[BRAINTREE]} />
         </ScrollView>
+        {this.state.showSelector && <StationSelector onValueChange={this.handleSelectorChange} /> }
       </View>
     );
   }

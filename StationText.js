@@ -32,7 +32,7 @@ export default class StationText extends React.Component {
   render() {
     return (
       <View style={styles.container}>
-        <TouchableOpacity style={styles.button} onPress={this.handleClick}>
+        <TouchableOpacity style={styles.button} onPress={this.props.onPress}>
           <Text style={styles.text}>{this.props.stationName}</Text>
         </TouchableOpacity>
       </View>
@@ -42,4 +42,5 @@ export default class StationText extends React.Component {
 
 StationText.propTypes = {
   stationName: PropTypes.string,
+  onPress: PropTypes.func,
 };
