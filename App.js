@@ -1,13 +1,25 @@
 import React from 'react';
-import { StyleSheet, Text, View, Button, ScrollView } from 'react-native';
+import { StyleSheet, View, ScrollView, RefreshControl, Alert } from 'react-native';
 import Header from './Header';
 import TrainSchedule from './TrainSchedule';
 import StationText from './StationText';
-import RefreshButton from './RefreshButton';
 import * as Request from './request';
 
 const ASHMONT = 'ashmontTime';
 const BRAINTREE = 'braintreeTime';
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexGrow: 1 / 8,
+    minHeight: 30,
+  },
+  body: {
+    flexGrow: 7 / 8,
+  },
+});
 
 export default class App extends React.Component {
   constructor(props) {
@@ -16,6 +28,7 @@ export default class App extends React.Component {
     this.state = {
       [ASHMONT]: null,
       [BRAINTREE]: null,
+      refreshing: false,
     };
   }
 
@@ -29,37 +42,48 @@ export default class App extends React.Component {
     });
   }
 
-  handleAPIError = (key, err) => {
+  handleAPIError = (key) => {
     console.log(`Update ${key} error`);
   }
 
   refreshAPI = () => {
-    return Promise.all([Request.getNextAshmontTime(), Request.getNextBraintreeTime()]).then(([ashmontData, braintreeData]) => {
+    this.setState({ refreshing: true });
+
+    return Promise.all([
+      Request.getNextAshmontTime(),
+      Request.getNextBraintreeTime(),
+    ]).then(([ashmontData, braintreeData]) => {
       this.updateTime(ASHMONT, ashmontData[0]);
       this.updateTime(BRAINTREE, braintreeData[0]);
+      this.setState({ refreshing: false });
     }).catch(this.handleAPIError);
   }
+
+  refreshAPIControl = () => this.refreshAPI().then(() => {
+    Alert.alert('Updated');
+  })
 
   render() {
     return (
       <View style={styles.container}>
-        <Header />
-        <View style={styles.body}>
+        <View style={styles.header}>
+          <Header />
+        </View>
+        <ScrollView
+          style={styles.body}
+          contentContainerStyle={{ flexGrow: 1 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={this.state.refreshing}
+              onRefresh={this.refreshAPIControl}
+            />
+          }
+        >
           <StationText stationName="JFK / UMASS" />
           <TrainSchedule trainName="From Ashmont" time={this.state[ASHMONT]} />
           <TrainSchedule trainName="From Braintree" time={this.state[BRAINTREE]} />
-          <RefreshButton onPress={this.refreshAPI} />
-        </View>
+        </ScrollView>
       </View>
     );
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  body: {
-    flex: 8,
-  },
-});

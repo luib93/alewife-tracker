@@ -1,21 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, View, Button, Alert, TouchableOpacity } from 'react-native';
-
-export default class StationText extends React.Component {
-  handleClick = (e) => {
-    Alert.alert('You are at ' + this.props.stationName);
-  }
-  
-  render() {
-    return (
-      <View style={styles.container}>
-        <TouchableOpacity style={styles.button} onPress={this.handleClick}>
-          <Text style={styles.text}>{this.props.stationName}</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-}
+import PropTypes from 'prop-types';
+import { StyleSheet, Text, View, Alert, TouchableOpacity } from 'react-native';
 
 const styles = StyleSheet.create({
   container: {
@@ -36,5 +21,25 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 30,
     color: 'white',
-  }
+  },
 });
+
+export default class StationText extends React.Component {
+  handleClick = () => {
+    Alert.alert(`You are at ${this.props.stationName}`);
+  }
+
+  render() {
+    return (
+      <View style={styles.container}>
+        <TouchableOpacity style={styles.button} onPress={this.handleClick}>
+          <Text style={styles.text}>{this.props.stationName}</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+}
+
+StationText.propTypes = {
+  stationName: PropTypes.string,
+};

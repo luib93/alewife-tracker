@@ -1,16 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, Button } from 'react-native';
-
-export default class Header extends React.Component {
-  render() {
-    return (
-      <View style={styles.header}>
-        <Text style={styles.text}>Next 🚉 to Alewife</Text>
-        <Text style={styles.author}>by Brian Lui</Text>
-      </View>
-    );
-  }
-}
+import { StyleSheet, Text, View } from 'react-native';
 
 const styles = StyleSheet.create({
   text: {
@@ -23,7 +12,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   header: {
-    marginTop: 40,
     flex: 1,
+    justifyContent: 'center',
   },
 });
+
+const Header = () => (
+    <View style={styles.header}>
+      <Text style={styles.text}>Next 🚉 to Alewife</Text>
+      <Text style={styles.author}>by Brian Lui</Text>
+    </View>
+);
+
+export default Header;
